@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if account else 'Add' }} Account - Water Monitor{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 1.5rem;">{{ 'Edit' if account else 'Add New' }} Account</h2>
+
+<div class="card" style="max-width: 600px;">
+    <form method="POST">
+        <div class="form-group">
+            <label for="building_name">Building Name</label>
+            <input type="text" id="building_name" name="building_name"
+                   value="{{ account.building_name if account else '' }}"
+                   placeholder="e.g., Building A, 123 Main St">
+        </div>
+
+        <div class="form-group">
+            <label for="unit_number">Unit Number</label>
+            <input type="text" id="unit_number" name="unit_number"
+                   value="{{ account.unit_number if account else '' }}"
+                   placeholder="e.g., 101, 2B">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email (mywateradvisor2.com login)</label>
+            <input type="email" id="email" name="email" required
+                   value="{{ account.email if account else '' }}"
+                   placeholder="meter1@example.com">
+        </div>
+
+        <div class="form-group">
+            <label for="password">
+                Password
+                {% if account %}(leave blank to keep current){% endif %}
+            </label>
+            <input type="password" id="password" name="password"
+                   {% if not account %}required{% endif %}
+                   placeholder="{% if account %}Enter new password to change{% else %}Password{% endif %}">
+        </div>
+
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button type="submit" class="btn btn-primary">
+                {{ 'Update' if account else 'Add' }} Account
+            </button>
+            <a href="{{ url_for('accounts_list') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

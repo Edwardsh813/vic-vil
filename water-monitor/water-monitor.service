@@ -1,0 +1,14 @@
+[Unit]
+Description=Water Monitor Dashboard
+After=network.target
+
+[Service]
+User=hunter
+Group=hunter
+WorkingDirectory=/home/hunter/projects/vic-vil/water-monitor
+ExecStart=/home/hunter/.local/bin/gunicorn -c gunicorn_config.py app:app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

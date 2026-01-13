@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Water Monitor{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 1.5rem;">Dashboard - {{ today }}</h2>
+
+<div class="stats">
+    <div class="stat-card" style="background: #dcfce7;">
+        <div class="label">Estimated Water Bill</div>
+        <div class="value" style="color: #166534;">${{ "%.2f"|format(total_estimated_bill) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Monthly Usage</div>
+        <div class="value">{{ "%.0f"|format(total_monthly) }} gal</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Daily Average</div>
+        <div class="value">{{ "%.0f"|format(total_daily_avg) }} gal/day</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Units</div>
+        <div class="value">{{ total_units }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Meters</div>
+        <div class="value">{{ meter_count }}</div>
+    </div>
+</div>
+
+{% if alerts %}
+<div class="card" style="border-left: 4px solid #dc2626;">
+    <h2>Recent Alerts</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Building</th>
+                <th>Unit</th>
+                <th>Type</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alerts %}
+            <tr>
+                <td>{{ alert.triggered_at }}</td>
+                <td>{{ alert.building_name }}</td>
+                <td>{{ alert.unit_number }}</td>
+                <td><span class="alert-badge danger">{{ alert.alert_type }}</span></td>
+                <td>{{ alert.message }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if leak_alerts %}
+<div class="card" style="border-left: 4px solid #dc2626; background: #fef2f2;">
+    <h2 style="color: #dc2626;">Leak Alerts</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Address</th>
+                <th>Message</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for leak in leak_alerts %}
+            <tr id="leak-row-{{ leak.id }}">
+                <td>{{ leak.created_at[:16] if leak.created_at else '' }}</td>
+                <td>{{ leak.address or (leak.building_name + ' - ' + leak.unit_number) }}</td>
+                <td><span class="leak-alert">LEAK</span> {{ leak.message }}</td>
+                <td>
+                    <button class="btn-icon btn-add" onclick="addLeakAlert({{ leak.account_id }})" title="Add alert notification">+</button>
+                    <button class="btn-icon btn-dismiss" onclick="dismissLeak({{ leak.id }})" title="Dismiss alert">X</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if overage_alerts %}
+<div class="card" style="border-left: 4px solid #f59e0b; background: #fffbeb;">
+    <h2 style="color: #b45309;">Projected Overage Alerts</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Address</th>
+                <th>Projection</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in overage_alerts %}
+            <tr id="overage-row-{{ alert.id }}">
+                <td>{{ alert.created_at[:16] if alert.created_at else '' }}</td>
+                <td>{{ alert.address or (alert.building_name + ' - ' + alert.unit_number) }}</td>
+                <td><span class="overage-alert">OVERAGE</span> {{ alert.message }}</td>
+                <td>
+                    <button class="btn-icon btn-dismiss" onclick="dismissOverage({{ alert.id }})" title="Dismiss alert">X</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% for building, meters in buildings.items()|sort %}
+<div class="card">
+    <h2>{{ building }}
+        <span class="text-muted" style="font-weight: normal;">
+            ({{ meters[0].unit_count }} units,
+            {{ "%.0f"|format(meters|sum(attribute='monthly_usage')) }} gal,
+            <span style="color: #166534;">${{ "%.2f"|format(meters|sum(attribute='estimated_cost')) }}</span>)
+        </span>
+    </h2>
+
+    <div class="grid">
+        {% for meter in meters|sort(attribute='unit') %}
+        <div class="card meter-card {% if meter.leak_detected %}leak-detected{% elif meter.overage_alert %}overage-detected{% endif %}">
+            <div class="unit mb-2">{{ meter.address or ('Unit ' + (meter.unit or 'N/A')) }}</div>
+
+            {% if meter.leak_detected %}
+            <div class="leak-alert mb-2">LEAK DETECTED</div>
+            {% elif meter.overage_alert %}
+            <div class="overage-alert mb-2">PROJECTED OVERAGE</div>
+            {% endif %}
+
+            <div class="estimated-cost mb-2">${{ "%.2f"|format(meter.estimated_cost) }}</div>
+            <div class="text-muted mb-2">Est. Bill ({{ meter.unit_count }} units, {{ meter.included_gallons }} gal incl.)</div>
+
+            <div class="usage mb-2">{{ "%.0f"|format(meter.monthly_usage) }} gal</div>
+            <div class="text-muted mb-2">Monthly usage</div>
+
+            {% set max_usage = meter.avg_12mo if meter.avg_12mo > 0 else 3000 %}
+            {% set pct = (meter.monthly_usage / max_usage * 100)|int %}
+            {% set pct = pct if pct <= 100 else 100 %}
+            <div class="usage-bar {% if pct > 80 %}usage-high{% elif pct > 50 %}usage-medium{% endif %} mb-2">
+                <div class="fill" style="width: {{ pct }}%"></div>
+            </div>
+            <div class="text-muted mb-2" style="font-size: 0.75rem;">
+                {{ "%.0f"|format(pct) }}% of 12-mo avg ({{ "%.0f"|format(max_usage) }} gal)
+            </div>
+
+            <div class="text-muted">
+                {% if meter.last_scraped %}
+                Last update: {{ meter.last_scraped[:16] }}
+                {% endif %}
+            </div>
+
+            <div class="mt-4">
+                <a href="{{ url_for('meter_detail', account_id=meter.id) }}" class="btn btn-secondary">
+                    View Details
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+
+<div class="card">
+    <h2>Actions</h2>
+    <button onclick="triggerScrape()" class="btn btn-primary">
+        Refresh All Meters Now
+    </button>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function triggerScrape() {
+    if (confirm('This will scrape all meter accounts. Continue?')) {
+        fetch('/api/scrape', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Scrape complete: ' + data.results.success + ' successful, ' + data.results.failed + ' failed');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(err => alert('Error: ' + err));
+    }
+}
+
+function dismissLeak(logId) {
+    if (confirm('Dismiss this leak alert?')) {
+        fetch('/api/leak/dismiss/' + logId, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('leak-row-' + logId).remove();
+                }
+            })
+            .catch(err => alert('Error: ' + err));
+    }
+}
+
+function dismissOverage(logId) {
+    if (confirm('Dismiss this overage alert?')) {
+        fetch('/api/overage/dismiss/' + logId, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('overage-row-' + logId).remove();
+                }
+            })
+            .catch(err => alert('Error: ' + err));
+    }
+}
+
+function addLeakAlert(accountId) {
+    fetch('/api/leak/add-alert/' + accountId, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Alert notification added for this meter');
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(err => alert('Error: ' + err));
+}
+</script>
+{% endblock %}

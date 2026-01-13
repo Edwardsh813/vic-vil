@@ -1,0 +1,5 @@
+email,password,building_name,unit_number
+meter1@example.com,password123,Building A,101
+meter2@example.com,password123,Building A,102
+meter3@example.com,password123,Building A,103
+meter4@example.com,password123,Building B,201

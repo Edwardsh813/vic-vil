@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Alerts - Water Monitor{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 1.5rem;">Alert Management</h2>
+
+<div class="card">
+    <h2>Create New Alert</h2>
+    <form method="POST" action="{{ url_for('add_alert') }}" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+            <label for="account_id">Apply To</label>
+            <select id="account_id" name="account_id">
+                <option value="all">All Meters</option>
+                {% for account in accounts %}
+                <option value="{{ account.id }}">
+                    {{ account.building_name }} - Unit {{ account.unit_number }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+            <label for="alert_type">Alert Type</label>
+            <select id="alert_type" name="alert_type">
+                {% for type_id, type_name in alert_types %}
+                <option value="{{ type_id }}">{{ type_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+            <label for="threshold">Threshold</label>
+            <input type="number" id="threshold" name="threshold" step="0.1" required placeholder="e.g., 100">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Alert</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Active Alert Rules</h2>
+    {% if alert_configs %}
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Threshold</th>
+                <th>Applies To</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for config in alert_configs %}
+            <tr>
+                <td>{{ config.alert_type }}</td>
+                <td>{{ config.threshold_value }}</td>
+                <td>
+                    {% if config.account_id %}
+                        Specific Meter (#{{ config.account_id }})
+                    {% else %}
+                        All Meters
+                    {% endif %}
+                </td>
+                <td>
+                    <button class="btn btn-danger btn-sm">Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">No alert rules configured yet.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Alert History</h2>
+    {% if alert_history %}
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Building</th>
+                <th>Unit</th>
+                <th>Type</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alert_history %}
+            <tr>
+                <td>{{ alert.triggered_at[:16] }}</td>
+                <td>{{ alert.building_name or '-' }}</td>
+                <td>{{ alert.unit_number or '-' }}</td>
+                <td><span class="alert-badge danger">{{ alert.alert_type }}</span></td>
+                <td>{{ alert.message }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">No alerts have been triggered yet.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Alert Types Reference</h2>
+    <table>
+        <tr>
+            <td><strong>High Daily Usage</strong></td>
+            <td>Triggers when total daily usage exceeds the threshold (in gallons)</td>
+        </tr>
+        <tr>
+            <td><strong>High Hourly Usage</strong></td>
+            <td>Triggers when any hour's usage exceeds the threshold (in gallons)</td>
+        </tr>
+        <tr>
+            <td><strong>No Data</strong></td>
+            <td>Triggers when no data has been received for X hours</td>
+        </tr>
+        <tr>
+            <td><strong>Leak Detection</strong></td>
+            <td>Triggers when water usage is detected for X continuous hours (possible leak)</td>
+        </tr>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Accounts - Water Monitor{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2>Meter Accounts</h2>
+    <a href="{{ url_for('add_account') }}" class="btn btn-primary">Add Account</a>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Building</th>
+                <th>Unit</th>
+                <th>Email</th>
+                <th>Last Scraped</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for account in accounts %}
+            <tr>
+                <td>{{ account.building_name or '-' }}</td>
+                <td>{{ account.unit_number or '-' }}</td>
+                <td>{{ account.email }}</td>
+                <td>{{ account.last_scraped[:16] if account.last_scraped else 'Never' }}</td>
+                <td>
+                    <a href="{{ url_for('edit_account', account_id=account.id) }}" class="btn btn-secondary">Edit</a>
+                    <form method="POST" action="{{ url_for('delete_account', account_id=account.id) }}"
+                          style="display: inline;"
+                          onsubmit="return confirm('Delete this account?')">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem;">
+                    No accounts configured. <a href="{{ url_for('add_account') }}">Add your first account</a>.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>Bulk Import</h2>
+    <p class="text-muted mb-4">
+        To add multiple accounts, you can import them using the command line tool.
+        Create a CSV file with columns: email, password, building_name, unit_number
+    </p>
+    <code style="background: #f3f4f6; padding: 1rem; display: block; border-radius: 6px;">
+        python manage.py import_accounts accounts.csv
+    </code>
+</div>
+{% endblock %}

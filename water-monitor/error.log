@@ -1,0 +1,71 @@
+[2026-01-12 22:36:56 +0000] [61562] [INFO] Starting gunicorn 23.0.0
+[2026-01-12 22:36:56 +0000] [61562] [INFO] Listening at: http://127.0.0.1:5000 (61562)
+[2026-01-12 22:36:56 +0000] [61562] [INFO] Using worker: gthread
+[2026-01-12 22:36:56 +0000] [61575] [INFO] Booting worker with pid: 61575
+[2026-01-12 22:36:56 +0000] [61576] [INFO] Booting worker with pid: 61576
+[2026-01-12 23:17:18 +0000] [61562] [INFO] Handling signal: term
+[2026-01-12 23:17:19 +0000] [61575] [INFO] Worker exiting (pid: 61575)
+[2026-01-12 23:17:19 +0000] [61576] [INFO] Worker exiting (pid: 61576)
+[2026-01-12 23:17:19 +0000] [61562] [INFO] Shutting down: Master
+[2026-01-12 23:17:24 +0000] [62477] [INFO] Starting gunicorn 23.0.0
+[2026-01-12 23:17:24 +0000] [62477] [INFO] Listening at: http://127.0.0.1:5000 (62477)
+[2026-01-12 23:17:24 +0000] [62477] [INFO] Using worker: gthread
+[2026-01-12 23:17:24 +0000] [62478] [INFO] Booting worker with pid: 62478
+[2026-01-12 23:17:24 +0000] [62482] [INFO] Booting worker with pid: 62482
+[2026-01-12 23:31:35 +0000] [62477] [INFO] Handling signal: term
+[2026-01-12 23:31:36 +0000] [62478] [INFO] Worker exiting (pid: 62478)
+[2026-01-12 23:31:36 +0000] [62482] [INFO] Worker exiting (pid: 62482)
+[2026-01-12 23:31:36 +0000] [62477] [INFO] Shutting down: Master
+[2026-01-12 23:31:41 +0000] [62695] [INFO] Starting gunicorn 23.0.0
+[2026-01-12 23:31:41 +0000] [62695] [INFO] Listening at: http://127.0.0.1:5000 (62695)
+[2026-01-12 23:31:41 +0000] [62695] [INFO] Using worker: gthread
+[2026-01-12 23:31:41 +0000] [62696] [INFO] Booting worker with pid: 62696
+[2026-01-12 23:31:41 +0000] [62698] [INFO] Booting worker with pid: 62698
+[2026-01-12 23:34:00 +0000] [62695] [INFO] Handling signal: term
+[2026-01-12 23:34:01 +0000] [62696] [INFO] Worker exiting (pid: 62696)
+[2026-01-12 23:34:01 +0000] [62698] [INFO] Worker exiting (pid: 62698)
+[2026-01-12 23:34:01 +0000] [62695] [INFO] Shutting down: Master
+[2026-01-12 23:34:06 +0000] [63044] [INFO] Starting gunicorn 23.0.0
+[2026-01-12 23:34:06 +0000] [63044] [INFO] Listening at: http://127.0.0.1:5000 (63044)
+[2026-01-12 23:34:06 +0000] [63044] [INFO] Using worker: gthread
+[2026-01-12 23:34:06 +0000] [63045] [INFO] Booting worker with pid: 63045
+[2026-01-12 23:34:06 +0000] [63046] [INFO] Booting worker with pid: 63046
+[2026-01-12 23:35:31 +0000] [63044] [INFO] Handling signal: term
+[2026-01-12 23:35:32 +0000] [63046] [INFO] Worker exiting (pid: 63046)
+[2026-01-12 23:35:32 +0000] [63045] [INFO] Worker exiting (pid: 63045)
+[2026-01-12 23:35:32 +0000] [63044] [INFO] Shutting down: Master
+[2026-01-12 23:35:37 +0000] [63253] [INFO] Starting gunicorn 23.0.0
+[2026-01-12 23:35:37 +0000] [63253] [INFO] Listening at: http://127.0.0.1:5000 (63253)
+[2026-01-12 23:35:37 +0000] [63253] [INFO] Using worker: gthread
+[2026-01-12 23:35:37 +0000] [63254] [INFO] Booting worker with pid: 63254
+[2026-01-12 23:35:37 +0000] [63255] [INFO] Booting worker with pid: 63255
+[2026-01-13 00:06:51 +0000] [63253] [INFO] Handling signal: term
+[2026-01-13 00:06:52 +0000] [63254] [INFO] Worker exiting (pid: 63254)
+[2026-01-13 00:06:52 +0000] [63255] [INFO] Worker exiting (pid: 63255)
+[2026-01-13 00:06:52 +0000] [63253] [INFO] Shutting down: Master
+[2026-01-13 00:06:57 +0000] [64205] [INFO] Starting gunicorn 23.0.0
+[2026-01-13 00:06:57 +0000] [64205] [INFO] Listening at: http://127.0.0.1:5000 (64205)
+[2026-01-13 00:06:57 +0000] [64205] [INFO] Using worker: gthread
+[2026-01-13 00:06:57 +0000] [64206] [INFO] Booting worker with pid: 64206
+[2026-01-13 00:06:57 +0000] [64207] [INFO] Booting worker with pid: 64207
+[2026-01-13 00:10:45 +0000] [64235] [INFO] Starting gunicorn 23.0.0
+[2026-01-13 00:10:45 +0000] [64235] [ERROR] Connection in use: ('127.0.0.1', 5000)
+[2026-01-13 00:10:45 +0000] [64235] [ERROR] connection to ('127.0.0.1', 5000) failed: [Errno 98] Address already in use
+[2026-01-13 00:10:46 +0000] [64235] [ERROR] Connection in use: ('127.0.0.1', 5000)
+[2026-01-13 00:10:46 +0000] [64235] [ERROR] connection to ('127.0.0.1', 5000) failed: [Errno 98] Address already in use
+[2026-01-13 00:10:47 +0000] [64235] [ERROR] Connection in use: ('127.0.0.1', 5000)
+[2026-01-13 00:10:47 +0000] [64235] [ERROR] connection to ('127.0.0.1', 5000) failed: [Errno 98] Address already in use
+[2026-01-13 00:10:48 +0000] [64235] [ERROR] Connection in use: ('127.0.0.1', 5000)
+[2026-01-13 00:10:48 +0000] [64235] [ERROR] connection to ('127.0.0.1', 5000) failed: [Errno 98] Address already in use
+[2026-01-13 00:10:49 +0000] [64235] [ERROR] Connection in use: ('127.0.0.1', 5000)
+[2026-01-13 00:10:49 +0000] [64235] [ERROR] connection to ('127.0.0.1', 5000) failed: [Errno 98] Address already in use
+[2026-01-13 00:10:50 +0000] [64235] [ERROR] Can't connect to ('127.0.0.1', 5000)
+[2026-01-13 01:15:32 +0000] [64205] [INFO] Handling signal: term
+[2026-01-13 01:15:32 +0000] [64206] [INFO] Worker exiting (pid: 64206)
+[2026-01-13 01:15:32 +0000] [64207] [INFO] Worker exiting (pid: 64207)
+[2026-01-13 01:15:32 +0000] [64205] [INFO] Shutting down: Master
+[2026-01-13 01:15:38 +0000] [65997] [INFO] Starting gunicorn 23.0.0
+[2026-01-13 01:15:38 +0000] [65997] [INFO] Listening at: http://127.0.0.1:5000 (65997)
+[2026-01-13 01:15:38 +0000] [65997] [INFO] Using worker: gthread
+[2026-01-13 01:15:38 +0000] [65998] [INFO] Booting worker with pid: 65998
+[2026-01-13 01:15:38 +0000] [65999] [INFO] Booting worker with pid: 65999
