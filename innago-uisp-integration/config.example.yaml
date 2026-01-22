@@ -1,0 +1,58 @@
+# Victorian Village - Innago/UISP Integration Config
+# Copy to config.yaml and fill in values
+
+innago:
+  api_url: https://api-my.innago.com/openapi
+  api_key: YOUR_INNAGO_API_KEY
+  property_id: YOUR_PROPERTY_ID
+
+uisp:
+  host: 10.8.10.10
+  crm_api_key: YOUR_UISP_CRM_API_KEY
+  nms_api_key: YOUR_UISP_NMS_API_KEY
+  parent_site_id: YOUR_VICTORIAN_VILLAGE_SITE_ID
+
+email:
+  from: internet@erefiber.com
+  smtp_host: smtp.example.com
+  smtp_port: 587
+  smtp_user: YOUR_SMTP_USER
+  smtp_pass: YOUR_SMTP_PASS
+
+packages:
+  - name: Village Fiber 500
+    speed_down: 500
+    speed_up: 500
+    base_price: 45
+    tenant_addon: 0
+    default: true
+  - name: Village Fiber 1G
+    speed_down: 1000
+    speed_up: 1000
+    base_price: 55
+    tenant_addon: 10
+  - name: Village Fiber 2G
+    speed_down: 2000
+    speed_up: 2000
+    base_price: 60
+    tenant_addon: 15
+
+keywords:
+  internet_issues:
+    - internet
+    - wifi
+    - fiber
+    - slow
+    - outage
+    - connection
+    - network
+  upgrade_requests:
+    - upgrade
+    - faster
+    - 1g
+    - 2g
+    - speed
+    - change plan
+
+polling:
+  interval_minutes: 5
