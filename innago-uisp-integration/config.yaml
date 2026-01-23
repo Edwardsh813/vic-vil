@@ -1,23 +1,21 @@
-# Victorian Village - Innago/UISP Integration Config
-# Copy to config.yaml and fill in values
-
 innago:
   api_url: https://api-my.innago.com/openapi
-  api_key: YOUR_INNAGO_API_KEY
-  property_id: YOUR_PROPERTY_ID
+  api_key: WAITING_ON_INNAGO
+  property_id: WAITING_ON_INNAGO
 
 uisp:
   host: 10.8.10.10
-  crm_api_key: YOUR_UISP_CRM_API_KEY
-  nms_api_key: YOUR_UISP_NMS_API_KEY
-  parent_site_id: YOUR_VICTORIAN_VILLAGE_SITE_ID
+  crm_api_key: T+JzRJD2AdQRMKKLPdH/5CfeCD7GRWwm5SdPVvf7OOtVDEYRcZUp62gvj9zK3UNL
+  nms_api_key: ad12e5d0-9b10-4e32-ab90-483588297df8
+  parent_site_id: bc623f6e-37d0-4441-870a-db8669c61cb0
 
-email:
-  from: internet@erefiber.com
-  smtp_host: smtp.example.com
-  smtp_port: 587
-  smtp_user: YOUR_SMTP_USER
-  smtp_pass: YOUR_SMTP_PASS
+# Email disabled - UISP handles notifications
+# email:
+#   from: internet@erefiber.com
+#   smtp_host: smtp.example.com
+#   smtp_port: 587
+#   smtp_user: user
+#   smtp_pass: pass
 
 packages:
   - name: VIC-VIL 500

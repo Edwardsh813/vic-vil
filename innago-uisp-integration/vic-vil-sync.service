@@ -1,0 +1,19 @@
+[Unit]
+Description=Victorian Village Innago/UISP Sync Service
+After=network.target
+
+[Service]
+Type=simple
+User=vicvil
+WorkingDirectory=/opt/vic-vil-integration
+ExecStart=/opt/vic-vil-integration/venv/bin/python main.py
+Restart=always
+RestartSec=30
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vic-vil-sync
+
+[Install]
+WantedBy=multi-user.target
