@@ -171,3 +171,47 @@ class UispNmsClient:
     def assign_device_to_site(self, device_id: str, site_id: str) -> dict:
         """Assign a device to a site."""
         return self.update_device(device_id, {"siteId": site_id})
+
+    def suspend_device(self, device_id: str, reason: str = "Awaiting tenant") -> dict:
+        """Suspend/disable a device (ONU stays registered but inactive)."""
+        return self.update_device(device_id, {
+            "enabled": False,
+            "attributes": {
+                "suspended": True,
+                "suspendedReason": reason
+            }
+        })
+
+    def activate_device(self, device_id: str) -> dict:
+        """Activate a suspended device."""
+        return self.update_device(device_id, {
+            "enabled": True,
+            "attributes": {
+                "suspended": False,
+                "suspendedReason": None
+            }
+        })
+
+    def find_device_by_serial(self, serial: str) -> Optional[dict]:
+        """Find device by serial number or MAC."""
+        devices = self.get_devices()
+        serial_lower = serial.lower().replace(':', '')
+        for d in devices:
+            ident = d.get('identification', {})
+            device_serial = ident.get('serialNumber', '').lower()
+            device_mac = ident.get('mac', '').lower().replace(':', '')
+            if serial_lower in [device_serial, device_mac]:
+                return d
+        return None
+
+    def authorize_device(self, device_id: str, name: str, site_id: str = None) -> dict:
+        """Authorize a device with a name and optionally assign to site."""
+        data = {
+            "identification": {
+                "name": name,
+                "authorized": True
+            }
+        }
+        if site_id:
+            data["identification"]["siteId"] = site_id
+        return self.update_device(device_id, data)

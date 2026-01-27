@@ -38,11 +38,14 @@ class InnagoClient:
         return self._get(f"/v1/properties/{property_id}/units")
 
     # Leases & Tenants
-    def get_leases(self, property_id: Optional[str] = None) -> list:
-        """Get all leases, optionally filtered by property."""
+    def get_leases(self, property_id: Optional[str] = None,
+                   status: Optional[str] = None) -> list:
+        """Get all leases, optionally filtered by property and status."""
         params = {}
         if property_id:
             params["propertyId"] = property_id
+        if status:
+            params["status"] = status
         return self._get("/v1/leases", params)
 
     def get_tenants_by_lease(self, lease_id: str) -> list:

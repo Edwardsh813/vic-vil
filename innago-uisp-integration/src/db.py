@@ -17,8 +17,11 @@ class Database:
                     uisp_client_id TEXT,
                     uisp_service_id TEXT,
                     unit_number TEXT,
+                    property_address TEXT,
                     innago_charge_id TEXT,
                     current_package TEXT,
+                    status TEXT DEFAULT 'active',
+                    service_status TEXT DEFAULT 'active',
                     synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
@@ -50,15 +53,16 @@ class Database:
 
     def save_synced_lease(self, lease_id: str, tenant_id: str, uisp_client_id: str,
                           uisp_service_id: str, unit_number: str,
-                          innago_charge_id: str = None, current_package: str = None):
+                          property_address: str = None, innago_charge_id: str = None,
+                          current_package: str = None):
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
                 INSERT OR REPLACE INTO synced_leases
                 (innago_lease_id, innago_tenant_id, uisp_client_id, uisp_service_id,
-                 unit_number, innago_charge_id, current_package)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                 unit_number, property_address, innago_charge_id, current_package, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
             """, (lease_id, tenant_id, uisp_client_id, uisp_service_id,
-                  unit_number, innago_charge_id, current_package))
+                  unit_number, property_address, innago_charge_id, current_package))
             conn.commit()
 
     def update_lease_package(self, lease_id: str, innago_charge_id: str, package_name: str):
@@ -102,5 +106,43 @@ class Database:
             conn.execute(
                 "INSERT INTO sync_log (event_type, details) VALUES (?, ?)",
                 (event_type, details)
+            )
+            conn.commit()
+
+    def get_synced_lease(self, lease_id: str) -> dict | None:
+        """Get synced lease record by ID."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.execute(
+                "SELECT * FROM synced_leases WHERE innago_lease_id = ?",
+                (lease_id,)
+            )
+            row = cur.fetchone()
+            return dict(row) if row else None
+
+    def update_lease_status(self, lease_id: str, status: str):
+        """Update lease status (active, ended, etc.)."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "UPDATE synced_leases SET status = ? WHERE innago_lease_id = ?",
+                (status, lease_id)
+            )
+            conn.commit()
+
+    def get_active_leases(self) -> list:
+        """Get all active synced leases."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.execute(
+                "SELECT * FROM synced_leases WHERE status = 'active'"
+            )
+            return [dict(row) for row in cur.fetchall()]
+
+    def update_service_status(self, lease_id: str, service_status: str):
+        """Update service status (active, suspended) - tracks UISP billing status."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "UPDATE synced_leases SET service_status = ? WHERE innago_lease_id = ?",
+                (service_status, lease_id)
             )
             conn.commit()

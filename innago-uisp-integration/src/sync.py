@@ -6,6 +6,7 @@ from .config import Config
 from .db import Database
 from .innago import InnagoClient
 from .uisp import UispCrmClient, UispNmsClient
+from .onu import ONUProvisioner, find_onu_by_unit
 try:
     from .email_service import EmailService
 except ImportError:
@@ -32,6 +33,9 @@ class SyncEngine:
             except Exception as e:
                 logger.warning(f"Email service not configured: {e}")
 
+        # ONU provisioner for activating/suspending ONUs
+        self.onu_provisioner = ONUProvisioner(self.uisp_nms, config.uisp_parent_site_id)
+
     def get_package_by_name(self, name: str) -> dict | None:
         """Get package config by name."""
         for pkg in self.config.packages:
@@ -48,6 +52,8 @@ class SyncEngine:
         logger.info("Starting sync cycle")
         try:
             self.sync_new_leases()
+            self.sync_ended_leases()
+            self.sync_uisp_billing_status()  # Poll UISP for suspensions/reactivations
             self.sync_maintenance_tickets()
             logger.info("Sync cycle complete")
         except Exception as e:
@@ -72,6 +78,9 @@ class SyncEngine:
             if not unit_number:
                 logger.warning(f"Could not extract unit number for lease {lease_id}")
                 continue
+
+            # Get property address for ONU mapping
+            property_address = self._extract_property_address(lease)
 
             # Get tenant info
             tenants = self.innago.get_tenants_by_lease(lease_id)
@@ -117,8 +126,8 @@ class SyncEngine:
                 # Create or find subscriber site
                 site = self._get_or_create_site(unit_number)
 
-                # Try to find and rename ONU for this unit
-                self._assign_onu_to_unit(unit_number, site)
+                # Activate ONU for this unit
+                self._assign_onu_to_unit(unit_number, site, property_address)
 
                 # Add recurring charge to Innago
                 innago_charge = self.innago.create_recurring_charge(
@@ -137,6 +146,7 @@ class SyncEngine:
                     uisp_client_id=uisp_client_id,
                     uisp_service_id=uisp_service_id,
                     unit_number=unit_number,
+                    property_address=property_address,
                     innago_charge_id=innago_charge_id,
                     current_package=default_pkg["name"]
                 )
@@ -158,6 +168,178 @@ class SyncEngine:
             except Exception as e:
                 logger.error(f"Failed to provision lease {lease_id}: {e}")
                 self.db.log_event("provision_error", f"Lease {lease_id}: {e}")
+
+    def sync_ended_leases(self):
+        """Check for ended leases and suspend service/ONU."""
+        logger.info("Checking for ended leases...")
+
+        # Get all leases including ended ones
+        leases = self.innago.get_leases(
+            self.config.innago_property_id,
+            status="ended"  # or "terminated", "expired" depending on Innago API
+        )
+
+        for lease in leases:
+            lease_id = str(lease.get("id"))
+
+            # Check if we have this lease synced and it's still active
+            sync_record = self.db.get_synced_lease(lease_id)
+            if not sync_record:
+                continue  # Not our lease or already handled
+
+            if sync_record.get("status") == "ended":
+                continue  # Already processed
+
+            unit_number = sync_record.get("unit_number")
+            property_address = self._extract_property_address(lease)
+
+            logger.info(f"Processing ended lease: {lease_id} for unit {unit_number}")
+
+            try:
+                # Suspend service in UISP
+                uisp_service_id = sync_record.get("uisp_service_id")
+                if uisp_service_id:
+                    self.uisp_crm.update_service(uisp_service_id, {"status": 0})  # Inactive
+                    logger.info(f"Suspended UISP service: {uisp_service_id}")
+
+                # Suspend ONU
+                if property_address and unit_number:
+                    self.onu_provisioner.suspend_onu(
+                        property_address, unit_number,
+                        reason=f"Lease ended: {lease_id}"
+                    )
+
+                # Delete recurring charge in Innago
+                innago_charge_id = sync_record.get("innago_charge_id")
+                if innago_charge_id:
+                    self.innago.delete_recurring_charge(innago_charge_id)
+                    logger.info(f"Deleted Innago charge: {innago_charge_id}")
+
+                # Update sync record
+                self.db.update_lease_status(lease_id, "ended")
+                self.db.log_event("lease_ended", f"Unit {unit_number}, Lease {lease_id}")
+                logger.info(f"Successfully processed ended lease for unit {unit_number}")
+
+            except Exception as e:
+                logger.error(f"Failed to process ended lease {lease_id}: {e}")
+                self.db.log_event("lease_end_error", f"Lease {lease_id}: {e}")
+
+    def sync_uisp_billing_status(self):
+        """
+        Poll UISP for service status changes (suspensions/reactivations).
+
+        When UISP suspends service for non-payment:
+          - Suspend the ONU
+          - Create prorated credit in Innago
+
+        When UISP reactivates service (payment received):
+          - Activate the ONU
+        """
+        logger.info("Checking UISP billing status...")
+
+        # Get all active synced leases
+        active_leases = self.db.get_active_leases()
+
+        for lease_record in active_leases:
+            uisp_service_id = lease_record.get("uisp_service_id")
+            if not uisp_service_id:
+                continue
+
+            try:
+                # Get current service status from UISP
+                services = self.uisp_crm.get_services(lease_record.get("uisp_client_id"))
+                service = next((s for s in services if str(s.get("id")) == uisp_service_id), None)
+
+                if not service:
+                    continue
+
+                uisp_status = service.get("status")  # 1=active, 2=suspended, etc.
+                current_status = lease_record.get("service_status", "active")
+                unit_number = lease_record.get("unit_number")
+                property_address = lease_record.get("property_address")
+
+                # UISP suspended service (non-payment)
+                if uisp_status == 2 and current_status != "suspended":
+                    logger.info(f"UISP suspended service for unit {unit_number}")
+
+                    # Suspend ONU
+                    if property_address:
+                        self.onu_provisioner.suspend_onu(
+                            property_address, unit_number,
+                            reason="Non-payment - suspended by UISP"
+                        )
+
+                    # Create prorated credit in Innago
+                    self._create_prorate_credit(lease_record, service)
+
+                    # Update local status
+                    self.db.update_service_status(lease_record["innago_lease_id"], "suspended")
+                    self.db.log_event("service_suspended", f"Unit {unit_number} - non-payment")
+
+                # UISP reactivated service (payment received)
+                elif uisp_status == 1 and current_status == "suspended":
+                    logger.info(f"UISP reactivated service for unit {unit_number}")
+
+                    # Activate ONU
+                    if property_address:
+                        self.onu_provisioner.activate_onu(property_address, unit_number)
+
+                    # Update local status
+                    self.db.update_service_status(lease_record["innago_lease_id"], "active")
+                    self.db.log_event("service_reactivated", f"Unit {unit_number} - payment received")
+
+            except Exception as e:
+                logger.error(f"Error checking UISP status for service {uisp_service_id}: {e}")
+
+    def _create_prorate_credit(self, lease_record: dict, uisp_service: dict):
+        """Create prorated credit in Innago when service is suspended mid-cycle."""
+        try:
+            # Calculate days remaining in billing cycle
+            from datetime import datetime, timedelta
+
+            # Get suspension date and billing period from UISP
+            suspended_at = uisp_service.get("suspendedAt") or datetime.now().isoformat()
+            if isinstance(suspended_at, str):
+                suspended_date = datetime.fromisoformat(suspended_at.replace("Z", "+00:00"))
+            else:
+                suspended_date = datetime.now()
+
+            # Assume monthly billing, calculate days remaining
+            days_in_month = 30
+            day_of_month = suspended_date.day
+            days_remaining = days_in_month - day_of_month
+
+            if days_remaining <= 0:
+                return  # No prorate needed
+
+            # Get package price
+            package_name = lease_record.get("current_package", "Village Fiber 500")
+            package = self.get_package_by_name(package_name)
+            if not package:
+                return
+
+            monthly_rate = package.get("base_price", 45)
+            daily_rate = monthly_rate / days_in_month
+            credit_amount = round(daily_rate * days_remaining, 2)
+
+            if credit_amount < 1:
+                return  # Skip tiny credits
+
+            # Create credit in Innago
+            lease_id = lease_record.get("innago_lease_id")
+            # Note: Innago API may use negative amount or separate credit endpoint
+            self.innago.create_invoice(
+                tenant_id=lease_record.get("innago_tenant_id"),
+                line_items=[{
+                    "description": f"Internet credit - service suspended {suspended_date.strftime('%m/%d')} ({days_remaining} days)",
+                    "amount": -credit_amount  # Negative for credit
+                }]
+            )
+
+            logger.info(f"Created ${credit_amount} prorate credit for unit {lease_record.get('unit_number')}")
+
+        except Exception as e:
+            logger.error(f"Error creating prorate credit: {e}")
 
     def sync_maintenance_tickets(self):
         """Check for internet-related maintenance tickets."""
@@ -290,6 +472,28 @@ class SyncEngine:
 
         return None
 
+    def _extract_property_address(self, lease: dict) -> str | None:
+        """Extract property address from lease data for ONU mapping."""
+        # Try property.address field
+        property_info = lease.get("property", {})
+        address = property_info.get("address") or property_info.get("name")
+        if address:
+            return address
+
+        # Try unit.property.address
+        unit_info = lease.get("unit", {})
+        property_info = unit_info.get("property", {})
+        address = property_info.get("address") or property_info.get("name")
+        if address:
+            return address
+
+        # Try top-level address fields
+        address = lease.get("propertyAddress") or lease.get("address")
+        if address:
+            return address
+
+        return None
+
     def _extract_unit_from_ticket(self, ticket: dict) -> str | None:
         """Extract unit number from maintenance ticket."""
         # Check if ticket has unit info
@@ -327,12 +531,27 @@ class SyncEngine:
             site_type="endpoint"
         )
 
-    def _assign_onu_to_unit(self, unit_number: str, site: dict):
-        """Find ONU for unit and assign to site."""
-        # This would need logic to identify which ONU belongs to which unit
-        # Could be based on serial number mapping, ONU port, etc.
-        # For now, log that manual assignment may be needed
-        logger.info(f"ONU assignment for unit {unit_number} may need manual verification")
+    def _assign_onu_to_unit(self, unit_number: str, site: dict, property_address: str = None):
+        """Find ONU for unit and activate it."""
+        # Use the ONU inventory to find and activate the ONU
+        # Property address should be like "350 S Harper" or extracted from site/lease
+
+        if not property_address:
+            # Try to extract from site name or use a default
+            # Site name is typically "Unit X" so we need the property from elsewhere
+            logger.warning(f"No property address provided for unit {unit_number}")
+            return False
+
+        try:
+            activated = self.onu_provisioner.activate_onu(property_address, unit_number)
+            if activated:
+                logger.info(f"Activated ONU for {property_address} unit {unit_number}")
+            else:
+                logger.warning(f"Could not activate ONU for {property_address} unit {unit_number}")
+            return activated
+        except Exception as e:
+            logger.error(f"Error activating ONU for unit {unit_number}: {e}")
+            return False
 
     def _get_uisp_client_for_unit(self, unit_number: str) -> str | None:
         """Get UISP client ID for a unit."""
