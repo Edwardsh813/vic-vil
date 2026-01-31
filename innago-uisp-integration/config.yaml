@@ -1,3 +1,6 @@
+# Victorian Village - Innago/UISP Integration
+# Simplified billing: ERE invoices complex monthly based on occupied units
+
 innago:
   api_url: https://api-my.innago.com/openapi
   api_key: WAITING_ON_INNAGO
@@ -5,39 +8,16 @@ innago:
 
 uisp:
   host: 10.8.10.10
-  crm_api_key: T+JzRJD2AdQRMKKLPdH/5CfeCD7GRWwm5SdPVvf7OOtVDEYRcZUp62gvj9zK3UNL
   nms_api_key: ad12e5d0-9b10-4e32-ab90-483588297df8
   parent_site_id: bc623f6e-37d0-4441-870a-db8669c61cb0
 
-# Email disabled - UISP handles notifications
-# email:
-#   from: internet@erefiber.com
-#   smtp_host: smtp.example.com
-#   smtp_port: 587
-#   smtp_user: user
-#   smtp_pass: pass
+# Billing to apartment complex
+billing:
+  base_rate: 45  # Per occupied unit per month
+  total_units: 118
+  grace_period_day: 5  # Suspend internet if rent not paid by this day
 
-packages:
-  - name: VIC-VIL 500
-    uisp_plan_id: 10
-    speed_down: 500
-    speed_up: 500
-    base_price: 45
-    tenant_addon: 0
-    default: true
-  - name: VIC-VIL 1G
-    uisp_plan_id: 11
-    speed_down: 1000
-    speed_up: 1000
-    base_price: 55
-    tenant_addon: 10
-  - name: VIC-VIL 2G
-    uisp_plan_id: 12
-    speed_down: 2000
-    speed_up: 2000
-    base_price: 65
-    tenant_addon: 20
-
+# Keywords that trigger ticket forwarding to UISP
 keywords:
   internet_issues:
     - internet
@@ -47,13 +27,9 @@ keywords:
     - outage
     - connection
     - network
-  upgrade_requests:
-    - upgrade
-    - faster
-    - 1g
-    - 2g
-    - speed
-    - change plan
+    - router
+    - no service
+    - offline
 
 polling:
   interval_minutes: 5

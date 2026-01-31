@@ -1,3 +1,7 @@
+"""
+Configuration loader for Victorian Village integration.
+"""
+
 import yaml
 from pathlib import Path
 
@@ -11,6 +15,7 @@ class Config:
         with open(path) as f:
             self._config = yaml.safe_load(f)
 
+    # Innago
     @property
     def innago_api_url(self) -> str:
         return self._config["innago"]["api_url"]
@@ -23,13 +28,10 @@ class Config:
     def innago_property_id(self) -> str:
         return self._config["innago"]["property_id"]
 
+    # UISP
     @property
     def uisp_host(self) -> str:
         return self._config["uisp"]["host"]
-
-    @property
-    def uisp_crm_api_key(self) -> str:
-        return self._config["uisp"]["crm_api_key"]
 
     @property
     def uisp_nms_api_key(self) -> str:
@@ -39,45 +41,25 @@ class Config:
     def uisp_parent_site_id(self) -> str:
         return self._config["uisp"]["parent_site_id"]
 
+    # Billing
     @property
-    def email_from(self) -> str:
-        return self._config.get("email", {}).get("from", "")
+    def base_rate(self) -> float:
+        return self._config.get("billing", {}).get("base_rate", 45)
 
     @property
-    def email_smtp_host(self) -> str:
-        return self._config.get("email", {}).get("smtp_host", "")
+    def total_units(self) -> int:
+        return self._config.get("billing", {}).get("total_units", 118)
 
     @property
-    def email_smtp_port(self) -> int:
-        return self._config.get("email", {}).get("smtp_port", 587)
+    def grace_period_day(self) -> int:
+        return self._config.get("billing", {}).get("grace_period_day", 5)
 
-    @property
-    def email_smtp_user(self) -> str:
-        return self._config.get("email", {}).get("smtp_user", "")
-
-    @property
-    def email_smtp_pass(self) -> str:
-        return self._config.get("email", {}).get("smtp_pass", "")
-
-    @property
-    def packages(self) -> list:
-        return self._config["packages"]
-
-    @property
-    def default_package(self) -> dict:
-        for pkg in self.packages:
-            if pkg.get("default"):
-                return pkg
-        return self.packages[0]
-
+    # Keywords for ticket forwarding
     @property
     def internet_keywords(self) -> list:
         return self._config.get("keywords", {}).get("internet_issues", [])
 
-    @property
-    def upgrade_keywords(self) -> list:
-        return self._config.get("keywords", {}).get("upgrade_requests", [])
-
+    # Polling
     @property
     def polling_interval(self) -> int:
         return self._config.get("polling", {}).get("interval_minutes", 5)

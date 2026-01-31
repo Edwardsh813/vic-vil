@@ -118,3 +118,34 @@ class InnagoClient:
         resp = self.session.delete(f"{self.api_url}/v1/recurring-charges/{charge_id}")
         resp.raise_for_status()
         return resp.json() if resp.text else {}
+
+    # Lease Balance (for rent delinquency checking)
+    def get_lease_balance(self, lease_id: str) -> float:
+        """
+        Get outstanding balance for a lease.
+        Returns amount owed (0 if paid up, >0 if owes money).
+        """
+        try:
+            # Try to get lease balance directly
+            lease = self._get(f"/v1/leases/{lease_id}")
+            balance = lease.get("balance") or lease.get("outstandingBalance") or 0
+            return float(balance)
+        except Exception:
+            pass
+
+        # Fallback: sum unpaid invoices
+        try:
+            invoices = self._get("/v1/invoices", params={"leaseId": lease_id})
+            total_owed = 0
+            for inv in invoices:
+                if inv.get("status") in ["unpaid", "partially_paid", "overdue"]:
+                    amount = float(inv.get("amount", 0))
+                    paid = float(inv.get("amountPaid", 0))
+                    total_owed += (amount - paid)
+            return total_owed
+        except Exception:
+            return 0
+
+    def get_lease(self, lease_id: str) -> dict:
+        """Get a specific lease."""
+        return self._get(f"/v1/leases/{lease_id}")

