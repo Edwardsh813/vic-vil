@@ -93,12 +93,134 @@ class UispCrmClient:
         return self._get("/tickets", params)
 
     def create_ticket(self, client_id: str, subject: str, message: str) -> dict:
-        """Create a support ticket."""
+        """Create a support ticket for a client."""
         return self._post("/tickets", {
             "clientId": int(client_id),
             "subject": subject,
             "message": message
         })
+
+    def create_ticket_for_device(self, subject: str, message: str, device_id: str = None) -> dict:
+        """
+        Create a support ticket linked to a device (ONU).
+
+        Uses the Victorian Village master client for all tickets,
+        with device info in the ticket body.
+        """
+        # Get or create the Victorian Village master client
+        vic_vil_client_id = self._get_vic_vil_client_id()
+
+        ticket_data = {
+            "clientId": vic_vil_client_id,
+            "subject": subject,
+            "message": message,
+        }
+
+        # Add device reference if available
+        if device_id:
+            ticket_data["deviceId"] = device_id
+
+        return self._post("/tickets", ticket_data)
+
+    def _get_vic_vil_client_id(self) -> int:
+        """Get or create the Victorian Village master client for tickets."""
+        # Search for existing client
+        clients = self._get("/clients")
+        for client in clients:
+            if "Victorian Village" in client.get("companyName", ""):
+                return int(client.get("id"))
+            if "Victorian Village" in f"{client.get('firstName', '')} {client.get('lastName', '')}":
+                return int(client.get("id"))
+
+        # Create if not found
+        new_client = self._post("/clients", {
+            "companyName": "Victorian Village Apartments",
+            "firstName": "Property",
+            "lastName": "Management",
+            "isLead": False,
+            "note": "Master client for Victorian Village internet tickets"
+        })
+        return int(new_client.get("id"))
+
+    # Billing for apartment complex
+    def get_or_create_billing_client(self, company_name: str, email: str,
+                                      contact_name: str = None) -> dict:
+        """
+        Get or create a billing client for the apartment complex.
+        This client gets invoices and can access the UISP portal.
+        """
+        # Search for existing
+        clients = self._get("/clients")
+        for client in clients:
+            if client.get("companyName") == company_name:
+                return client
+
+        # Create new billing client
+        first_name = "Property"
+        last_name = "Management"
+        if contact_name:
+            parts = contact_name.split(" ", 1)
+            first_name = parts[0]
+            last_name = parts[1] if len(parts) > 1 else ""
+
+        return self._post("/clients", {
+            "companyName": company_name,
+            "firstName": first_name,
+            "lastName": last_name,
+            "email": email,
+            "isLead": False,
+            "sendInvoiceByEmail": True,
+            "invoiceMaturityDays": 14,
+            "note": "Apartment complex billing - monthly internet service"
+        })
+
+    def create_invoice(self, client_id: int, items: list, due_days: int = 14) -> dict:
+        """
+        Create an invoice for the apartment complex.
+
+        items: list of {"description": str, "quantity": int, "price": float}
+        """
+        from datetime import datetime, timedelta
+
+        invoice_date = datetime.now().strftime("%Y-%m-%d")
+        due_date = (datetime.now() + timedelta(days=due_days)).strftime("%Y-%m-%d")
+
+        return self._post("/invoices", {
+            "clientId": client_id,
+            "createdDate": invoice_date,
+            "dueDate": due_date,
+            "items": items
+        })
+
+    def create_monthly_invoice(self, client_id: int, occupied_units: int,
+                                base_rate: float, upgrades: dict = None) -> dict:
+        """
+        Create monthly invoice for apartment complex.
+
+        upgrades: {"VIC-VIL 1G": count, "VIC-VIL 2G": count}
+        """
+        items = [{
+            "description": f"Internet Service - {occupied_units} occupied units @ ${base_rate}/unit",
+            "quantity": occupied_units,
+            "price": base_rate
+        }]
+
+        # Add upgrade line items
+        if upgrades:
+            if upgrades.get("VIC-VIL 1G", 0) > 0:
+                items.append({
+                    "description": "1G Upgrade Add-on",
+                    "quantity": upgrades["VIC-VIL 1G"],
+                    "price": 10.00
+                })
+            if upgrades.get("VIC-VIL 2G", 0) > 0:
+                items.append({
+                    "description": "2G Upgrade Add-on",
+                    "quantity": upgrades["VIC-VIL 2G"],
+                    "price": 20.00
+                })
+
+        return self.create_invoice(client_id, items)
 
 
 class UispNmsClient:
@@ -215,3 +337,25 @@ class UispNmsClient:
         if site_id:
             data["identification"]["siteId"] = site_id
         return self.update_device(device_id, data)
+
+    def set_device_qos(self, device_id: str, download_mbps: int, upload_mbps: int) -> dict:
+        """Set bandwidth limits (QoS) on a device."""
+        # Convert Mbps to bps for UISP API
+        download_bps = download_mbps * 1_000_000
+        upload_bps = upload_mbps * 1_000_000
+
+        return self.update_device(device_id, {
+            "qos": {
+                "enabled": True,
+                "downloadSpeed": download_bps,
+                "uploadSpeed": upload_bps
+            }
+        })
+
+    def remove_device_qos(self, device_id: str) -> dict:
+        """Remove bandwidth limits from a device."""
+        return self.update_device(device_id, {
+            "qos": {
+                "enabled": False
+            }
+        })

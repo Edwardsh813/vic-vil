@@ -149,3 +149,43 @@ class InnagoClient:
     def get_lease(self, lease_id: str) -> dict:
         """Get a specific lease."""
         return self._get(f"/v1/leases/{lease_id}")
+
+    # Tenant Notifications
+    def send_tenant_message(self, tenant_id: str, subject: str, message: str) -> dict:
+        """
+        Send a message to a tenant through Innago.
+        This appears in their tenant portal.
+        """
+        return self._post("/v1/messages", {
+            "tenantId": tenant_id,
+            "subject": subject,
+            "body": message
+        })
+
+    def notify_internet_suspended(self, tenant_id: str, reason: str = "unpaid rent"):
+        """Notify tenant their internet has been suspended."""
+        subject = "Internet Service Suspended"
+        message = f"""Your internet service has been suspended due to {reason}.
+
+To restore service, please bring your account current through your tenant portal.
+
+Once payment is received, your internet will be automatically restored.
+
+If you believe this is an error, please contact the leasing office.
+
+- Victorian Village Management
+"""
+        return self.send_tenant_message(tenant_id, subject, message)
+
+    def notify_internet_restored(self, tenant_id: str):
+        """Notify tenant their internet has been restored."""
+        subject = "Internet Service Restored"
+        message = """Your internet service has been restored.
+
+Thank you for bringing your account current.
+
+If you experience any issues with your connection, please submit a maintenance request.
+
+- Victorian Village Management
+"""
+        return self.send_tenant_message(tenant_id, subject, message)

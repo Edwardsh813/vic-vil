@@ -38,6 +38,7 @@ def main():
     parser.add_argument("-c", "--config", default="config.yaml", help="Config file path")
     parser.add_argument("--once", action="store_true", help="Run once and exit")
     parser.add_argument("--billing", action="store_true", help="Generate billing report")
+    parser.add_argument("--invoice", action="store_true", help="Generate billing + create UISP invoice")
     parser.add_argument("--status", action="store_true", help="Show current unit status")
     args = parser.parse_args()
 
@@ -50,8 +51,8 @@ def main():
     engine = SyncEngine(config)
 
     # Billing report mode
-    if args.billing:
-        report = engine.print_billing_report()
+    if args.billing or args.invoice:
+        report = engine.print_billing_report(create_invoice=args.invoice)
         return
 
     # Status mode

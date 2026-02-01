@@ -8,6 +8,7 @@ innago:
 
 uisp:
   host: 10.8.10.10
+  crm_api_key: T+JzRJD2AdQRMKKLPdH/5CfeCD7GRWwm5SdPVvf7OOtVDEYRcZUp62gvj9zK3UNL
   nms_api_key: ad12e5d0-9b10-4e32-ab90-483588297df8
   parent_site_id: bc623f6e-37d0-4441-870a-db8669c61cb0
 
@@ -16,6 +17,28 @@ billing:
   base_rate: 45  # Per occupied unit per month
   total_units: 118
   grace_period_day: 5  # Suspend internet if rent not paid by this day
+  complex_email: vicvilapt@gmail.com  # Email for complex to receive invoices/access portal
+
+# UISP Service Plans (for bandwidth shaping)
+packages:
+  - name: VIC-VIL 500
+    uisp_plan_id: 10
+    download: 500
+    upload: 500
+    price: 45
+    default: true
+  - name: VIC-VIL 1G
+    uisp_plan_id: 11
+    download: 1000
+    upload: 1000
+    price: 55
+    addon: 10
+  - name: VIC-VIL 2G
+    uisp_plan_id: 12
+    download: 2000
+    upload: 1000
+    price: 65
+    addon: 20
 
 # Keywords that trigger ticket forwarding to UISP
 keywords:

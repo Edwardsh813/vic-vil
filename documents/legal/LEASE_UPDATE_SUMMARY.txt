@@ -1,0 +1,152 @@
+================================================================================
+VICTORIAN VILLAGE LEASE TEMPLATE - UPDATE SUMMARY
+================================================================================
+Date: January 31, 2026
+File Updated: victorian-village-lease-template.docx
+
+OVERVIEW:
+The lease template has been successfully updated to combine the best elements
+of the NEW lease format (modern, legally compliant provisions) with the 
+comprehensive operational details from the OLD lease (rules, fees, requirements).
+
+================================================================================
+SECTIONS ADDED/RESTORED:
+================================================================================
+
+1. SECTION 8: INTERNET SERVICE (NEW - COMPREHENSIVE)
+   - Mandatory $45/month fiber internet service (ERE Fiber LLC)
+   - Equipment requirements (ONT provided, tenants supply own WiFi router)
+   - Terms of Service compliance
+   - 72-hour suspension notice for non-payment
+   - Residential use only (no servers, no reselling, no mining)
+   - Illegal activity prohibitions (copyright, hacking, spam, etc.)
+   - Speed upgrade options (1 Gbps, 2 Gbps)
+   - Violation consequences
+   - Support procedures
+
+2. SECTION 24: RULES AND REGULATIONS (RESTORED FROM OLD LEASE)
+   - Complete comprehensive rules (a-t) including:
+     * No roof access
+     * No obstructing hallways
+     * Toilet/water apparatus proper use only
+     * No signs/awnings without consent
+     * Fire hazard prohibitions
+     * No noisy/disorderly conduct
+     * UNDERAGE ALCOHOL/ILLEGAL DRUGS = IMMEDIATE EVICTION
+     * No pets (any kind)
+     * No picture hooks/nails without consent
+     * Abandoned fixtures become lessor property
+     * No unauthorized electrical work
+     * BEER KEGS ABSOLUTELY PROHIBITED
+     * No interfering electrical appliances
+     * White-backed draperies required
+     * No waterbeds without permission
+     * No trailers/boats without consent
+     * Assembly limit: 8 persons or 4x tenant count
+     * Security door system protection
+     * ABSOLUTELY NO HOOKAH PIPES
+
+3. SECTION 25: FEES (RESTORED FROM OLD LEASE)
+   - Lease Change: $30.00
+   - Lock Out (to 11 P.M.): $10.00; After 11 P.M.: $25.00
+   - Keys Made: $5.00 per key
+   - Check Returned by Bank: $25.00
+   - Lock Change: $35.00
+   - Removal of Trash Per Bag: $20.00
+   - Cleaning Refrigerator: $40.00
+   - Cleaning of Apartment (extensive): $10.00 per hour per person
+   - Non-Return of Key: $25.00
+   - Painting/patching walls: $12.00/hr + materials
+   - Structural Damage: $15.00/hr + materials
+   - Light fixtures/Refrigerator parts: $12.00/hr + materials
+   - Plumbing/electrical/appliance repair (tenant negligence): $12.00/hr + materials
+   - Moving Furniture at Request: $12.00/hr per person
+   - Using Security Deposit as last month: $100.00
+   - Cancellation over 60 days prior: Forfeiture of Security Deposit
+   - Cancellation within 60 days: No cancellation; Liable for rent until re-rented
+   - Sublet apartment: Forfeiture of deposit; Liable for rent until re-rented
+
+4. SECTION 26: ELECTRIC SERVICE (RESTORED FROM OLD LEASE)
+   - Tenants MUST have electric service (AEP) in their name(s)
+   - Must be active from lease start to lease end
+   - $50.00 bookkeeping fee for non-compliance
+   - Tenants billed for electric charges if not in their name
+
+================================================================================
+KEY IMPROVEMENTS MAINTAINED:
+================================================================================
+
+✓ Section 2: Late fee structure CORRECTED
+  - OLD: $25 late fee + 1.5% monthly finance charge (18% APR - potentially usurious)
+  - NEW: $25 late fee ONLY (legally compliant)
+
+✓ Proper section numbering (1-30)
+✓ All provisions from old lease preserved
+✓ Modern formatting and organization
+✓ Comprehensive tenant obligations
+✓ Strong landlord protections
+
+================================================================================
+FINAL SECTION COUNT: 30 SECTIONS
+================================================================================
+
+ 1. RENT PAYMENT
+ 2. LATE FEES
+ 3. JOINT AND SEVERAL LIABILITY
+ 4. CONDITION OF PREMISES
+ 5. INABILITY TO DELIVER POSSESSION
+ 6. DAMAGE OR DESTRUCTION
+ 7. UTILITIES
+ 8. INTERNET SERVICE ★ NEW
+ 9. RIGHT OF ENTRY
+10. NO SUBLETTING OR ASSIGNMENT
+11. LIMITATION OF LIABILITY
+12. PARTIAL EVICTION
+13. LESSEE COVENANTS
+14. SMOKE DETECTORS
+15. HOLDOVER TENANCY
+16. NO AUTOMATIC RENEWAL
+17. LEASE VIOLATIONS
+18. LEGAL PROCEEDINGS
+19. ABANDONMENT
+20. BINDING EFFECT
+21. RETURNED CHECKS
+22. LESSOR'S RIGHTS
+23. SECURITY DEPOSIT
+24. RULES AND REGULATIONS ★ RESTORED
+25. FEES ★ RESTORED
+26. ELECTRIC SERVICE ★ RESTORED
+27. PARKING
+28. SEVERABILITY
+29. ENTIRE AGREEMENT
+30. BED BUGS
+
+================================================================================
+BACKUP FILES CREATED:
+================================================================================
+- victorian-village-lease-template-OLD-BACKUP.docx (original template backup)
+
+================================================================================
+NEXT STEPS (RECOMMENDED):
+================================================================================
+
+1. Review the updated template for any client-specific customizations
+2. Update the PDF generation script (generate_lease_pdf.py) to match this template
+3. Regenerate all lease variants (1-person, 2-person, 3-person, 4-person .docx files)
+4. Regenerate all PDF versions from the updated .docx files
+5. Have the updated lease reviewed by Jim/Jolinda Edwards
+6. Consider having a licensed Ohio attorney review the Internet Service section
+
+================================================================================
+LEGAL COMPLIANCE NOTES:
+================================================================================
+
+✓ Eliminated potentially usurious 1.5% monthly finance charge
+✓ Maintained comprehensive operational rules and fee schedule
+✓ Added modern Internet Service provisions
+✓ Preserved all landlord protections from original lease
+✓ Ready for deployment at Victorian Village Apartments, Nelsonville, Ohio
+
+================================================================================
+END OF SUMMARY
+================================================================================

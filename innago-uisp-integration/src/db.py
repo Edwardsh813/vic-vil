@@ -21,9 +21,11 @@ class Database:
                 CREATE TABLE IF NOT EXISTS units (
                     unit_number TEXT PRIMARY KEY,
                     lease_id TEXT,
+                    tenant_id TEXT,
                     property_address TEXT,
                     status TEXT DEFAULT 'vacant',
                     rent_status TEXT DEFAULT 'current',
+                    package TEXT DEFAULT 'VIC-VIL 500',
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
@@ -85,19 +87,30 @@ class Database:
             return cur.fetchone() is not None
 
     def save_unit(self, unit_number: str, lease_id: str, property_address: str = None,
-                  status: str = "active"):
+                  tenant_id: str = None, status: str = "active", package: str = "VIC-VIL 500"):
         """Save or update unit record."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
-                INSERT INTO units (unit_number, lease_id, property_address, status, rent_status, updated_at)
-                VALUES (?, ?, ?, ?, 'current', ?)
+                INSERT INTO units (unit_number, lease_id, tenant_id, property_address, status, rent_status, package, updated_at)
+                VALUES (?, ?, ?, ?, ?, 'current', ?, ?)
                 ON CONFLICT(unit_number) DO UPDATE SET
                     lease_id = excluded.lease_id,
+                    tenant_id = excluded.tenant_id,
                     property_address = excluded.property_address,
                     status = excluded.status,
                     rent_status = 'current',
+                    package = excluded.package,
                     updated_at = excluded.updated_at
-            """, (unit_number, lease_id, property_address, status, datetime.now()))
+            """, (unit_number, lease_id, tenant_id, property_address, status, package, datetime.now()))
+            conn.commit()
+
+    def update_unit_package(self, unit_number: str, package: str):
+        """Update unit's internet package."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "UPDATE units SET package = ?, updated_at = ? WHERE unit_number = ?",
+                (package, datetime.now(), unit_number)
+            )
             conn.commit()
 
     def get_unit(self, unit_number: str) -> dict | None:

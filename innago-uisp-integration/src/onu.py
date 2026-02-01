@@ -172,8 +172,9 @@ class ONUProvisioner:
 
         return results
 
-    def activate_onu(self, property_name: str, unit: str) -> bool:
-        """Activate ONU for a unit (called when lease starts)."""
+    def activate_onu(self, property_name: str, unit: str,
+                     download_mbps: int = 500, upload_mbps: int = 500) -> bool:
+        """Activate ONU for a unit with bandwidth limits (called when lease starts)."""
         onu = find_onu_by_unit(property_name, unit)
 
         if not onu:
@@ -184,17 +185,36 @@ class ONUProvisioner:
             logger.warning(f"ONU {onu['onu_name']} not provisioned yet")
             return False
 
-        if onu['status'] == 'active':
-            logger.info(f"ONU {onu['onu_name']} already active")
-            return True
-
         try:
+            # Activate the device
             self.uisp.activate_device(onu['uisp_id'])
+
+            # Apply bandwidth limits
+            self.uisp.set_device_qos(onu['uisp_id'], download_mbps, upload_mbps)
+            logger.info(f"Set QoS on {onu['onu_name']}: {download_mbps}/{upload_mbps} Mbps")
+
             update_onu_status(onu['onu_name'], 'active')
             logger.info(f"Activated ONU: {onu['onu_name']}")
             return True
         except Exception as e:
             logger.error(f"Failed to activate {onu['onu_name']}: {e}")
+            return False
+
+    def set_onu_speed(self, property_name: str, unit: str,
+                      download_mbps: int, upload_mbps: int) -> bool:
+        """Update bandwidth limits on an ONU (for upgrades)."""
+        onu = find_onu_by_unit(property_name, unit)
+
+        if not onu or not onu['uisp_id']:
+            logger.warning(f"No provisioned ONU found for {property_name} unit {unit}")
+            return False
+
+        try:
+            self.uisp.set_device_qos(onu['uisp_id'], download_mbps, upload_mbps)
+            logger.info(f"Updated QoS on {onu['onu_name']}: {download_mbps}/{upload_mbps} Mbps")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to set speed on {onu['onu_name']}: {e}")
             return False
 
     def suspend_onu(self, property_name: str, unit: str, reason: str = "Tenant moved out") -> bool:

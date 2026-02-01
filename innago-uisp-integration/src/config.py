@@ -34,6 +34,10 @@ class Config:
         return self._config["uisp"]["host"]
 
     @property
+    def uisp_crm_api_key(self) -> str:
+        return self._config["uisp"]["crm_api_key"]
+
+    @property
     def uisp_nms_api_key(self) -> str:
         return self._config["uisp"]["nms_api_key"]
 
@@ -53,6 +57,28 @@ class Config:
     @property
     def grace_period_day(self) -> int:
         return self._config.get("billing", {}).get("grace_period_day", 5)
+
+    @property
+    def complex_billing_email(self) -> str:
+        return self._config.get("billing", {}).get("complex_email", "")
+
+    # Packages / Service Plans
+    @property
+    def packages(self) -> list:
+        return self._config.get("packages", [])
+
+    @property
+    def default_package(self) -> dict:
+        for pkg in self.packages:
+            if pkg.get("default"):
+                return pkg
+        return self.packages[0] if self.packages else {}
+
+    def get_package_by_name(self, name: str) -> dict | None:
+        for pkg in self.packages:
+            if pkg["name"] == name:
+                return pkg
+        return None
 
     # Keywords for ticket forwarding
     @property
